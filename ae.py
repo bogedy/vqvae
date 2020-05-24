@@ -53,6 +53,7 @@ def train_step(input, model):
     with tf.GradientTape() as tape:
         z = model.encode(input)
         output = model.decode(z)
+        print(input.shape, output.shape)
         loss = mse(input, output)
     gradients = tape.gradient(loss, model.trainable_variables)
     optimizer.apply_gradients(zip(gradients, model.trainable_variables))
@@ -62,7 +63,7 @@ def train(model, inputs, n):
     for i in range(n):
         if i%100==0:
             print("Step {0}".format(i))
-        train_step(inputs[i], model)
+        train_step(inputs[2*i:2*(i+1)], model)
 
 model = ae()
 
