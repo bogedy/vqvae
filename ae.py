@@ -23,13 +23,13 @@ class ae(tf.keras.Model):
             [
             tf.keras.layers.Dense(4),
             tf.keras.layers.Dense(28*28),
-            tf.keras.layers.Reshape(target_shape=(24, 24)),
+            tf.keras.layers.Reshape(target_shape=(28, 28)),
             ]
             )
 
     @tf.function
     def encode(self, x):
-        return self.econder(x)
+        return self.encoder(x)
 
     @tf.function
     def decode(self, z):
@@ -50,7 +50,7 @@ def mse(input, output):
 
 @tf.function
 def train_step(input, model):
-    with tf.GradientTape as tape:
+    with tf.GradientTape() as tape:
         z = model.encode(input)
         output = model.decode(z)
         loss = mse(input, output)
