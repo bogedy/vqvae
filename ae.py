@@ -2,6 +2,7 @@ import tensorflow as tf
 from tensorflow.keras.backend import batch_flatten
 
 import os
+from tqdm import tqdm
 
 optimizer = tf.optimizers.Adam(1e-4)
 
@@ -20,12 +21,12 @@ class ae(tf.keras.Model):
                 )
 
         self.decoder = tf.keras.Sequential(
-            [
-            tf.keras.layers.Dense(4),
-            tf.keras.layers.Dense(28*28),
-            tf.keras.layers.Reshape(target_shape=(28, 28)),
-            ]
-            )
+                [
+                tf.keras.layers.Dense(4),
+                tf.keras.layers.Dense(28*28),
+                tf.keras.layers.Reshape(target_shape=(28, 28)),
+                ]
+                )
 
     @tf.function
     def encode(self, x):
@@ -53,18 +54,19 @@ def train_step(input, model):
     with tf.GradientTape() as tape:
         z = model.encode(input)
         output = model.decode(z)
-        print(input.shape, output.shape)
         loss = mse(input, output)
     gradients = tape.gradient(loss, model.trainable_variables)
     optimizer.apply_gradients(zip(gradients, model.trainable_variables))
 
 @tf.function
-def train(model, inputs, n):
-    for i in range(n):
-        if i%100==0:
-            print("Step {0}".format(i))
-        train_step(inputs[2*i:2*(i+1)], model)
+def train(model, inputs, batch_size):
+    for i in tqdm(range(int(inputs.shape[0]/batch_size))):
+        train_step(inputs[batch_size*i:batch_size*(i+1)], model)
 
-model = ae()
+if __name__ == "__main__":
+    
+    model = ae()
 
-train(model, x_train, 100)
+    train(model, x_train, 3)
+
+
