@@ -4,9 +4,17 @@ from tensorflow.keras.backend import batch_flatten
 import os
 from tqdm import tqdm
 
+BATCH_SIZE= 3
+
 optimizer = tf.optimizers.Adam(1e-4)
 
 (x_train, y_train), (x_test, y_test) = tf.keras.datasets.mnist.load_data()
+x_train = x_train/255
+x_test = x_test/255
+trainset = tf.data.Dataset.from_tensor_slices(x_train)
+testset = tf.data.Dataset.from_tensor_slices(x_test)
+
+trainset = trainset.batch(BATCH_SIZE)
 
 class ae(tf.keras.Model):
     def __init__(self):
@@ -58,15 +66,17 @@ def train_step(input, model):
     gradients = tape.gradient(loss, model.trainable_variables)
     optimizer.apply_gradients(zip(gradients, model.trainable_variables))
 
-@tf.function
-def train(model, inputs, batch_size):
-    for i in tqdm(range(int(inputs.shape[0]/batch_size))):
-        train_step(inputs[batch_size*i:batch_size*(i+1)], model)
+def train(model, trainset):
+    end = x_train.shape[0]
+    with tqdm(total = end) as pbar:
+        for batch in tqdm(trainset):
+            train_step(batch, model)
+            pbar.update(BATCH_SIZE)
 
 if __name__ == "__main__":
     
     model = ae()
 
-    train(model, x_train, 3)
+    train(model, trainset)
 
 
